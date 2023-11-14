@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   resources.init(
     {
-      jobId: DataTypes.NUMBER,
+      jobId: DataTypes.INTEGER,
       resource: DataTypes.STRING,
     },
     {
