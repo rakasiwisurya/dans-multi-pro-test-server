@@ -1,5 +1,6 @@
 const Joi = require("joi");
 const { jobs, resources } = require("../models");
+const { Op, literal } = require("sequelize");
 
 exports.addJob = async (req, res) => {
   const { position, company, description, location, status, image, sources } = req.body;
@@ -86,8 +87,14 @@ exports.getJobs = async (req, res) => {
     const offset = (+page - 1) * +limit;
 
     const where = {};
-    if (description) where.description = description;
-    if (location) where.location = location;
+    if (description) {
+      where[Op.or] = [
+        literal(`LOWER(description) LIKE LOWER('%${description}%')`),
+        literal(`LOWER(company) LIKE LOWER('%${description}%')`),
+        literal(`LOWER(position) LIKE LOWER('%${description}%')`),
+      ];
+    }
+    if (location) where.location = literal(`LOWER(location) LIKE LOWER('%${location}%')`);
     if (full_time) where.status = "Full Time";
 
     const jobData = await jobs.findAll({
@@ -99,7 +106,10 @@ exports.getJobs = async (req, res) => {
     res.send({
       status: "Success",
       message: "Success get list jobs",
-      data: jobData,
+      data: {
+        page: +page,
+        data: jobData,
+      },
     });
   } catch (error) {
     console.log(error);
